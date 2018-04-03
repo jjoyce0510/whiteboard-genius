@@ -1,3 +1,3 @@
 from segmentation import segmentLinesFromImage
 
-segmentLinesFromImage("exampleCode.jpg")
+segmentLinesFromImage("exampleCode.jpg") # TODO return array of Line 
