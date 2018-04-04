@@ -16,6 +16,16 @@ def loadImage(path):
 def loadClassifer(path):
     return load_model(path)
 
+def preprocessImage(image):
+    # Convert to grayscale and apply Gaussian filtering
+    im_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    im_gray = cv2.GaussianBlur(im_gray, (5, 5), 0)
+
+    #Threshold the image
+    ret, im_th = cv2.threshold(im_gray, 170, 255, cv2.THRESH_BINARY_INV) #adjust this. 
+
+    return im_th
+
 class Classifier(object):
     def __init__(self, model_path):
         self.model = loadClassifer(model_path)
