@@ -120,22 +120,22 @@ class LineRecognizer:
             for edge in edges:
                 # edges already have weights, calculate new avg.
                 destNode = edge.getDestination()
-                newAvg = (currAvg + edge.getWeight())/(numVisited + 1)
+                # TODO: THIS IS NOT THE CORRECT WEIGHTED AVG.
+                newWeightedAvg = currAvg * numVisited
+                newWeightedAvg = (newWeightedAvg + edge.getWeight())/(numVisited + 1)
 
                 if destNode not in pathDict:
                     pathDict[destNode] = [0.0, None] # Avg thus far, edge getting there
 
-                if newAvg > pathDict[destNode][0]:
+                if newWeightedAvg > pathDict[destNode][0]:
                     # Better avg, replace
-                    pathDict[destNode][0] = newAvg
+                    pathDict[destNode][0] = newWeightedAvg
                     pathDict[destNode][1] = edge
                     # Only traverse into node if new avg better than old average. (One way traversal is key here.)
                     self.getAverageLongestPathRecursive(destNode, pathDict, numVisited + 1)
 
         def getCharactersFromPath(self, path, finalNode):
-
             print(finalNode)
-
             # Basically you want to trace back from the final node to build a string
             currNode = path[finalNode]
             reversedString = self.getCharactersFromPathRecursive(path, currNode, '')
