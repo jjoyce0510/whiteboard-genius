@@ -23,8 +23,59 @@ class LineRecognizer:
         self.classifier = classifier
 
     def recognizeLine(self, line):
-        graph = self.CharGraph(line, self.classifier)
-        return graph.getCharacters()
+        # First, need to break away unnecessary whitespace/break into single words.
+        wordImages = self.splitLineByWhitespace(line.getImage())
+        text = ""
+        for word in wordImages:
+            cv2.imshow("word", word.getImage())
+            cv2.waitKey()
+            graph = self.CharGraph(word, self.classifier)
+            text = text + graph.getCharacters() + " "
+
+        return text
+
+    def splitLineByWhitespace(self, lineImage):
+        # 1. Threshold
+        ret, im_th = cv2.threshold(lineImage, 160, 255, cv2.THRESH_BINARY) #adjust this.
+        cv2.imshow("thresholded", im_th)
+
+        # 2. Expand
+        dilation = cv2.erode(im_th,(11, 11), iterations = 7)
+        cv2.imshow("dilated", dilation)
+
+        # 3. Blur
+        im_blurred = cv2.GaussianBlur(dilation, (9, 89), 0)
+        cv2.imshow("blurred", im_blurred)
+
+        # 4. Threshold
+        ret, im_th = cv2.threshold(im_blurred, 240, 255, cv2.THRESH_BINARY) #adjust this.
+        cv2.imshow("re-thresholded", im_th)
+
+        bordersize=10
+        im_th_border=cv2.copyMakeBorder(im_th, top=bordersize, bottom=bordersize, left=bordersize, right=bordersize, borderType= cv2.BORDER_CONSTANT, value=255 )
+        orig_img_border=cv2.copyMakeBorder(lineImage, top=bordersize, bottom=bordersize, left=bordersize, right=bordersize, borderType= cv2.BORDER_CONSTANT, value=(255, 255, 255))
+        # Find contours in image
+        _, ctrs, hier = cv2.findContours(im_th_border, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+        # Get rectangles contains each contour
+        rects = [cv2.boundingRect(ctr) for ctr in ctrs]
+
+        words = []
+
+        # For each rectangular region, calculate HOG features and predict
+        for rect in rects:
+            if rect[0] is 0 and rect[1] is 0:
+                continue
+                im_gray_border[adjustedY:adjustedY+rect[3], rect[0]:rect[0]+rect[2]]
+            words.append(LineImage(orig_img_border[rect[1]:rect[1]+rect[3], rect[0]:rect[0]+rect[2]]))
+            #cv2.rectangle(im_th_border, (rect[0], rect[1]), (rect[0]+rect[2], rect[1] + rect[3]), (63, 191, 118), 2)
+            #cv2.rectangle(orig_img_border, (rect[0], rect[1]), (rect[0]+rect[2], rect[1] + rect[3]), (63, 191, 118), 2)
+
+        #cv2.imshow("Resulting Image with Rectangular ROIs", im_th_border)
+        #cv2.imshow("YEP", orig_img_border)
+        #cv2.waitKey()
+
+        return words
 
     class CharGraph:
         SAMPLING_WIDTH_IN_PX = 5
