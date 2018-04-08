@@ -1,8 +1,8 @@
 #Classifier.py
 #Contains classifier class
-
 import cv2
 from keras.models import load_model
+from keras.layers import Activation, Dense
 from skimage.feature import hog
 import numpy as np
 
@@ -11,7 +11,7 @@ mapping = {0: 48, 1: 49, 2: 50, 3: 51, 4: 52, 5: 53, 6: 54, 7: 55, 8: 56, 9: 57,
 # Loads image
 def loadImage(path):
     return cv2.imread(input_image_path)
-    
+
 # Loads the classifier
 def loadClassifer(path):
     return load_model(path)
@@ -22,15 +22,20 @@ def preprocessImage(image):
     im_gray = cv2.GaussianBlur(im_gray, (5, 5), 0)
 
     #Threshold the image
-    ret, im_th = cv2.threshold(im_gray, 170, 255, cv2.THRESH_BINARY_INV) #adjust this. 
+    ret, im_th = cv2.threshold(im_gray, 170, 255, cv2.THRESH_BINARY_INV) #adjust this.
 
     return im_th
 
-class Classifier(object):
+class CNNClassifier(object):
     def __init__(self, model_path):
         self.model = loadClassifer(model_path)
-    
-    def classify(image):
+        self.model.add(Dense(47, activation='softmax'))
+
+    def classify(self, image):
+        # We need to reshape to be 28x28
+        image = cv2.resize(image, (28, 28))
+        cv2.imshow("hello", image)
+        cv2.waitKey()
         #do we need this?
         image_array = np.array([image], 'uint8')
 
@@ -42,10 +47,14 @@ class Classifier(object):
         #roi_hog_fd = hog(roi, orientations=9, pixels_per_cell=(14, 14), cells_per_block=(1, 1), visualise=False)
 
         #reshape to have 1 for channel dim
-        roi_array = roi_array.reshape(roi_array.shape[0],28,28,1)
+        image_array = image_array.reshape(image_array.shape[0],28,28,1)
 
-        probs = self.model.predict(roi_array)
-        prediction = chr(mapping[np.argmax(probs)])
-    
-        return prediction, probs
+        probs = self.model.predict(image_array)
+        predictionIndex = np.argmax(probs)
+        predictionProbability = probs[0][predictionIndex]
+        prediction = chr(mapping[predictionIndex])
 
+        print (predictionProbability)
+        print prediction
+
+        return prediction, predictionProbability

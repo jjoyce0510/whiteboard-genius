@@ -79,11 +79,9 @@ class LineRecognizer:
 
         def createEdge(self, origin, dest):
             newEdgeImage = self.line.getImage()[:, origin:dest]
-            #cv2.imshow("edge from " + str(origin) + " to " + str(dest), newEdgeImage)
-            #cv2.waitKey()
-            #newEdgeWeight, prediction = self.classifier.classifyChar(newEdgeImage) <-- make sure HOG features extracted
-            newEdgeWeight = random.uniform(0, 1)
-            prediction = 'E'
+            prediction, newEdgeWeight = self.classifier.classify(newEdgeImage)
+            #newEdgeWeight = random.uniform(0, 1)
+            #prediction = 'E'
             return self.Edge(self.coordinateToLabel(origin), self.coordinateToLabel(dest), newEdgeWeight, prediction)
 
         def coordinateToLabel(self, coordinate):
