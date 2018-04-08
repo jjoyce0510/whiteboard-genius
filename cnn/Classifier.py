@@ -29,7 +29,7 @@ def preprocessImage(image):
 class CNNClassifier(object):
     def __init__(self, model_path):
         self.model = loadClassifer(model_path)
-        self.model.add(Dense(47, activation='softmax'))
+        #self.model.add(Dense(47, activation='softmax'))
 
     def classify(self, image):
         # We need to reshape to be 28x28
