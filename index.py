@@ -1,3 +1,7 @@
+import sys
+
+sys.path.append('/usr/local/lib/python3.6/site-packages')
+
 from segmentLines import segmentLinesFromImage
 from line import LineRecognizer
 from cnn.Classifier import CNNClassifier
@@ -12,9 +16,9 @@ for lineImage in lineImages:
     # Classifier must conform to generic classifier interface.
     recognizer = LineRecognizer(CNNClassifier('./classifiers/cnn-bymerge-E5.h5')) # pass in a classifier
     lineOfCode = recognizer.recognizeLine(lineImage)
-    print lineOfCode
+    print(lineOfCode)
     program = program + lineOfCode
 
-print program
+print(program)
 
 # runProgram(program, DEFAULT_LANGUAGE)
