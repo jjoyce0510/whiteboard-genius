@@ -57,6 +57,6 @@ class CNNClassifier(object):
         prediction = chr(mapping[predictionIndex])
 
         print (predictionProbability)
-        print prediction
+        print(prediction)
 
         return prediction, predictionProbability
