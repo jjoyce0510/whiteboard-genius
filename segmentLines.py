@@ -1,7 +1,7 @@
 # Import the modules
 import cv2
-from sklearn.externals import joblib
-from skimage.feature import hog
+# from sklearn.externals import joblib
+# from skimage.feature import hog
 from line import LineImage
 import numpy as np
 

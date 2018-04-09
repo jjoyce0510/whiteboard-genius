@@ -11,10 +11,11 @@ TEST_IMAGE = "exampleCode.jpg"
 
 lineImages = segmentLinesFromImage(TEST_IMAGE)
 program = ''
+recognizer = LineRecognizer(CNNClassifier('./classifiers/cnn-bymerge-E5.h5')) # pass in a classifier
+
 for lineImage in lineImages:
     # Returns full predicted line of code
     # Classifier must conform to generic classifier interface.
-    recognizer = LineRecognizer(CNNClassifier('./classifiers/cnn-bymerge-E5.h5')) # pass in a classifier
     lineOfCode = recognizer.recognizeLine(lineImage)
     print(lineOfCode)
     program = program + lineOfCode
