@@ -3,14 +3,16 @@
 import cv2
 from keras.models import load_model
 from keras.layers import Activation, Dense
-from skimage.feature import hog
+# from skimage.feature import hog
 import numpy as np
 
+# edit this mapping
 mapping = {0: 48, 1: 49, 2: 50, 3: 51, 4: 52, 5: 53, 6: 54, 7: 55, 8: 56, 9: 57, 10: 65, 11: 66, 12: 67, 13: 68, 14: 69, 15: 70, 16: 71, 17: 72, 18: 73, 19: 74, 20: 75, 21: 76, 22: 77, 23: 78, 24: 79, 25: 80, 26: 81, 27: 82, 28: 83, 29: 84, 30: 85, 31: 86, 32: 87, 33: 88, 34: 89, 35: 90, 36: 97, 37: 98, 38: 100, 39: 101, 40: 102, 41: 103, 42: 104, 43: 110, 44: 113, 45: 114, 46: 116}
+
 
 # Loads image
 def loadImage(path):
-    return cv2.imread(input_image_path)
+    return cv2.imread(path)
 
 # Loads the classifier
 def loadClassifer(path):
@@ -55,6 +57,6 @@ class CNNClassifier(object):
         prediction = chr(mapping[predictionIndex])
 
         print (predictionProbability)
-        print prediction
+        print(prediction)
 
         return prediction, predictionProbability
