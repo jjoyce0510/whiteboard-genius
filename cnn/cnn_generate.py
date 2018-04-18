@@ -10,12 +10,8 @@ from keras.layers.convolutional import MaxPooling2D
 from keras.layers.core import Activation, Dropout
 from keras.layers import Dense, Flatten
 from keras.utils import np_utils
-# from keras.datasets import mnist
-# from sklearn.externals import joblib
-# import pickle
 import scipy.io as sio
 import numpy as np
-# from skimage.feature import hog
 
 import cv2
 
@@ -41,16 +37,15 @@ def loadDataset(path):
 	# Load the dataset
 	mat = sio.loadmat(path)
 	mapping = {kv[0]:kv[1:][0] for kv in mat['dataset'][0][0][2]}
-	#print(mapping)
 
 	# Extract the features and labels
 	features = np.array(mat['dataset'][0][0][0][0][0][0], 'int16')
 	labels = np.array(mat['dataset'][0][0][0][0][0][1], 'int')
 
-	#ensure correct shape do I need?
-	features = features.reshape(features.shape[0], IMG_X, IMG_Y,1)
+	#ensure correct shape
+	features = features.reshape(features.shape[0], IMG_X, IMG_Y, 1)
 
-	return features,labels
+	return features, labels
 
 def flip_rotate(features):
 	temp_array = []
@@ -60,18 +55,18 @@ def flip_rotate(features):
 
 	return np.array(temp_array, 'uint8')
 
-# def extractHogFeatures(features):
-# 	# Extract the hog features
-# 	list_hog_fd = []
-# 	for feature in features:
-# 		fd = hog(np.rot90(np.fliplr(feature.reshape((28, 28)))), orientations=9, pixels_per_cell=(14, 14), cells_per_block=(1, 1), visualise=False)
-# 		list_hog_fd.append(fd)
-# 		d = np.array(list_hog_fd, 'float64')
-# 		print(fd.shape)
+def extractHogFeatures(features):
+	# Extract the hog features
+	list_hog_fd = []
+	for feature in features:
+		fd = hog(np.rot90(np.fliplr(feature.reshape((28, 28)))), orientations=9, pixels_per_cell=(14, 14), cells_per_block=(1, 1), visualise=False)
+		list_hog_fd.append(fd)
+		d = np.array(list_hog_fd, 'float64')
+		print(fd.shape)
 
-# 	hog_features = np.array(list_hog_fd, 'float64')
+	hog_features = np.array(list_hog_fd, 'float64')
 
-# 	return hog_features
+	return hog_features
 
 #splits data into seperate test and training arrays
 def split_data(features,labels):
@@ -98,88 +93,52 @@ def split_data(features,labels):
 
 	return (x_train, y_train), (x_test, y_test)
 
-def train_model(x_train, y_train, x_test, y_test):
+def create_model():
 	#use sequential model
 	model = Sequential()
 	#add 2d convolutional layer
-	# model.add(Conv2D(32, kernel_size=(5, 5), strides=(1, 1), activation='relu', input_shape=INPUT_SHAPE))
-	# #add 2d max pooling layer
-	# model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-	# #add 2d convolutional layer
-	# model.add(Conv2D(64, (5, 5), activation='relu'))
-	# #add 2d max pooling layer
-	# model.add(MaxPooling2D(pool_size=(2, 2)))
-	# #flatten output
-	# model.add(Flatten())
-	# #add full connected layer
-	# model.add(Dense(1000, activation='relu'))
-	# #add output layer
-	# model.add(Dense(num_classes, activation='softmax'))
-	# #select loss func and optomizer
-	# model.compile(loss=keras.losses.categorical_crossentropy, optimizer=keras.optimizers.SGD(lr=0.01), metrics=['accuracy'])
+	model.add(Conv2D(32, kernel_size=(5, 5), strides=(1, 1), activation='relu', input_shape=INPUT_SHAPE))
+	#add 2d max pooling layer
+	model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+	#add 2d convolutional layer
+	model.add(Conv2D(64, (5, 5), activation='relu'))
+	#add 2d max pooling layer
+	model.add(MaxPooling2D(pool_size=(2, 2)))
+	#flatten output
+	model.add(Flatten())
+	#add full connected layer
+	model.add(Dense(1000, activation='relu'))
+	#add output layer
+	model.add(Dense(num_classes, activation='softmax'))
+	#select loss func and optimizer     
+	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics = ['accuracy'])
 
-
-	model = Sequential()
-	model.add(Dense(512, input_shape=(784,)))
-	model.add(Activation('relu'))
-	                           
-	model.add(Dropout(0.2))
-	model.add(Dense(512))
-	model.add(Activation('relu'))
-	model.add(Dropout(0.2))
-	model.add(Dense(num_classes))
-	model.add(Activation('softmax'))
-	            
-
-	model.compile(loss='categorical_crossentropy', optimizer='adam')
-	model.fit(x_train, y_train, batch_size=batch_size, epochs=EPOCHS, verbose=1, validation_data=(x_test, y_test))
+	model.summary()
 
 	return model
 
+def train_model(model, x_train, y_train, x_test, y_test):
+	model.fit(x_train, y_train, batch_size=batch_size, epochs=EPOCHS, verbose=1, validation_data=(x_test, y_test))
+
 if __name__ == '__main__':
-	#get command line arguements
-	data_path = argv[1]
-	classifier_name = argv[2]
+	# get command line arguements
+	data_path = '../matlab/emnist-bymerge' #argv[1]
+	classifier_name = 'test' #argv[2]
 
-	#set up command line parser
-	#parser = argparse.ArgumentParser(description='Process some integers.')
-	#parser.add_argument('-t', type=str, nargs='+', help='Training Data')
-	#parser.add_argument('--foo', help='foo of the %(prog)s program')
-	
-
-
-	#load dataset
+	# load dataset
 	features, labels = loadDataset(data_path)
 
-	#flip + rotate the images
+	# flip + rotate the images
 	features = flip_rotate(features)
 	
-	#extract hog features
+	# extract hog features
 	# features = extractHogFeatures(features)
 
-	#split into 
+	# split into 
 	(x_train, y_train), (x_test, y_test) = split_data(features,labels)
-
-
-	print('x_train shape:', x_train.shape)
-	# print(x_train.shape, 'train samples')
-	print(x_test.shape, 'test samples')
-
 
 	label0 = y_train[20]
 	feature0 = x_train[20]
-	#print(feature0)
-	#print(feature0.shape)
-	#print(label0)
-	#cv2.imshow("image", feature0);
-	#cv2.waitKey(0)
-
-	#convert the data to the right type
-	x_train = x_train.reshape(x_train.shape[0], 784)
-	x_test = x_test.reshape(x_test.shape[0], 784)
-
-	print(x_train.shape)
-	print(x_test.shape)
 
 	x_train = x_train.astype('float32')
 	x_test = x_test.astype('float32')
@@ -189,7 +148,8 @@ if __name__ == '__main__':
 	y_train = np_utils.to_categorical(y_train, num_classes)
 	y_test = np_utils.to_categorical(y_test, num_classes)
 
-	model = train_model(x_train,y_train,x_test,y_test)
+	model = create_model()
+	train_model(model, x_train, y_train, x_test, y_test)
 
 	# Save the classifier
 	model.save("../classifiers/" + classifier_name)
