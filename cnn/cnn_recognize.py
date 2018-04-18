@@ -4,6 +4,7 @@ sys.path.append('/usr/local/lib/python3.6/site-packages')
 
 import cv2
 from keras.models import load_model
+from keras import backend as K
 # from skimage.feature import hog
 import numpy as np
 
@@ -32,18 +33,17 @@ def preprocessImage(image):
 
 
 def cropImage(rects,image):
-     #For each rectangular region, calculate HOG features and predict
-    # the digit using Linear SVM.
+    # this just takes the first character it found
     rect = rects[0]
     # Draw the rectangles
-    cv2.rectangle(image, (rect[0], rect[1]), (rect[0] + rect[2], rect[1] + rect[3]), (0, 255, 0), 3)
+    # cv2.rectangle(image, (rect[0], rect[1]), (rect[0] + rect[2], rect[1] + rect[3]), (0, 255, 0), 3)
     # cv2.imshow("thresholded scaled", image)
 
     leng = int(rect[3] * 1.6)
     ptx = int(rect[1] + rect[3] // 2 - leng // 2)
     pty = int(rect[0] + rect[2] // 2 - leng // 2)
 
-    #could sub leng twice!
+    # could sub leng twice!
     flag = False
     if ptx < 0:
         leng = leng - ptx
@@ -63,21 +63,11 @@ def cropImage(rects,image):
 def classify(roi, model):
     # Calculate the HOG features
     # roi_hog_fd = hog(roi, orientations=9, pixels_per_cell=(14, 14), cells_per_block=(1, 1), visualise=False)
-    roi_array = np.array([roi], 'uint8')
-    # roi_array = roi_array.reshape(1, 784)
-    
-
-    # print(roi_array.shape)
+    roi_array = np.array([roi], 'float32')
 
     roi_array /= 255
 
-    # final = roi_array.reshape(28,28)
-    # print(final)
-    # print(final.shape)
-    # cv2.imshow("final", final)
-
-
-    roi_array = roi_array.reshape(roi_array.shape[0], 784)
+    roi_array = roi_array.reshape(roi_array.shape[0], 28, 28, 1)
     probs = model.predict(roi_array, verbose=0)[0]
     prediction = chr(mapping[np.argmax(probs)])
     max_index = char_to_index[ord(prediction)]
@@ -98,8 +88,9 @@ def locateChar(image):
 
 if __name__ == '__main__':
     #get command line arguements
-    classifier_path = argv[1]
-    input_image_path = argv[2]
+    # classifier_path = '../classifiers/cnn-bymerge-E5.h5' #argv[1]
+    classifier_path = '../classifiers/test'
+    input_image_path = '../exampleCode.jpg' #argv[2]
 
     # Read the input image
     image = loadImage(input_image_path)
@@ -111,23 +102,18 @@ if __name__ == '__main__':
     processedImage = preprocessImage(image)
 
     #put rectangle around char
-    rects = locateChar(processedImage)
+    # rects = locateChar(processedImage)
 
-    image_cropped = cropImage(rects,image)
+    # image_cropped = cropImage(rects, image)
+    image_cropped = cv2.resize(processedImage, (28, 28), interpolation=cv2.INTER_AREA)
 
     #classify the char image
-    prediction, probabilities = classify(image_cropped,model)
-
-    #print all probs
-    print(probabilities)
-
-    #for count, prob in enumerate(probabilities):
-     #   print(chr(mapping[count]), prob)
+    prediction, max_prob = classify(image_cropped, model)
 
     #print max prob
-    print(prediction)
-    
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    print('Predicts {} with {:.3f}% confidence'.format(prediction, max_prob * 100))
+
+    K.clear_session()
+
 
     
