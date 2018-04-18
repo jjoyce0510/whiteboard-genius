@@ -23,7 +23,7 @@ mapping = {0: 48, 1: 49, 2: 50, 3: 51, 4: 52, 5: 53, 6: 54, 7: 55, 8: 56, 9: 57,
 #need final 1 for channel dim
 INPUT_SHAPE = (28, 28, 1)
 num_classes = 47
-EPOCHS = 1
+EPOCHS = 5
 batch_size = 128
 IMG_X = 28
 IMG_Y = 28
@@ -131,7 +131,7 @@ def train_model(model, x_train, y_train, x_test, y_test):
 if __name__ == '__main__':
 	# get command line arguements
 	data_path = '../matlab/emnist-bymerge' #argv[1]
-	classifier_name = 'bymerge-classifier' #argv[2]
+	classifier_name = 'bymerge-classifier-5epochs' #argv[2]
 
 	# load dataset
 	features, labels = loadDataset(data_path)
@@ -139,10 +139,6 @@ if __name__ == '__main__':
 	# flip + rotate the images
 	features = flip_rotate(features)
 	
-	#print(features[0].reshape(28,28).shape)
-	#cv2.imshow('fsdfsd',features[0].reshape(28,28))
-	#cv2.waitKey()
-
 	# extract hog features
 	# features = extractHogFeatures(features)
 
@@ -157,11 +153,10 @@ if __name__ == '__main__':
 	x_train /= 255
 	x_test /= 255
 
-	#print(x_test[0])
-
 	y_train = np_utils.to_categorical(y_train, num_classes)
 	y_test = np_utils.to_categorical(y_test, num_classes)
 
+	#create classifier
 	model = create_model()
 	train_model(model, x_train, y_train, x_test, y_test)
 
