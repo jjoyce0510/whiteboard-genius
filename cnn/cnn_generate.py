@@ -120,6 +120,13 @@ def create_model():
 def train_model(model, x_train, y_train, x_test, y_test):
 	model.fit(x_train, y_train, batch_size=batch_size, epochs=EPOCHS, verbose=1, validation_data=(x_test, y_test))
 
+def write_info(name, example, acc):
+	f = open(name + '-summary.txt', 'w+')
+	f.write(name + ' Summary\n')
+	f.write('Training Accuracy: ' + str(acc))
+	f.write('Input Ex.\n')
+	f.write(str(example))
+
 if __name__ == '__main__':
 	# get command line arguements
 	data_path = '../matlab/emnist-bymerge' #argv[1]
@@ -149,7 +156,12 @@ if __name__ == '__main__':
 	y_test = np_utils.to_categorical(y_test, num_classes)
 
 	model = create_model()
+
 	train_model(model, x_train, y_train, x_test, y_test)
+
+	acc = model.evaluate(x_test, y_test, verbose=0)[0]
+
+	write_info(classifier_name, x_train[0], acc)
 
 	# Save the classifier
 	model.save("../classifiers/" + classifier_name)
