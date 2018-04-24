@@ -80,7 +80,7 @@ def split_data(features,labels):
 		if count % 10 == 0:
 			x_test_list.append(feature)
 			y_test_list.append(labels[count])
-		else: 
+		else:
 			x_train_list.append(feature)
 			y_train_list.append(labels[count])
 		count = count + 1
@@ -110,7 +110,7 @@ def create_model():
 	model.add(Dense(1000, activation='relu'))
 	#add output layer
 	model.add(Dense(num_classes, activation='softmax'))
-	#select loss func and optimizer     
+	#select loss func and optimizer
 	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics = ['accuracy'])
 
 	model.summary()
@@ -130,11 +130,11 @@ if __name__ == '__main__':
 
 	# flip + rotate the images
 	features = flip_rotate(features)
-	
+
 	# extract hog features
 	# features = extractHogFeatures(features)
 
-	# split into 
+	# split into
 	(x_train, y_train), (x_test, y_test) = split_data(features,labels)
 
 	label0 = y_train[20]

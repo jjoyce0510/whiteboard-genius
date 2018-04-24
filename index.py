@@ -7,7 +7,7 @@ TEST_IMAGE = "exampleCode.jpg"
 
 lineImages = segmentLinesFromImage(TEST_IMAGE)
 program = ''
-recognizer = LineRecognizer(CNNClassifier('./classifiers/cnn-bymerge-E5.h5')) # pass in a classifier
+recognizer = LineRecognizer(CNNClassifier('./classifiers/test')) # pass in a classifier
 
 for lineImage in lineImages:
     # Returns full predicted line of code
