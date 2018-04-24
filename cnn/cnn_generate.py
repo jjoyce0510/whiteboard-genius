@@ -42,6 +42,14 @@ def loadDataset(path):
 	features = np.array(mat['dataset'][0][0][0][0][0][0], 'int16')
 	labels = np.array(mat['dataset'][0][0][0][0][0][1], 'int')
 
+	#threshold the training images
+	features_th = []
+	for feature in features:
+		ret, feature_th = cv2.threshold(feature, 170, 255, cv2.THRESH_BINARY) #adjust this. 
+		features_th.append(feature_th)
+
+	features = np.array(features_th)
+
 	#ensure correct shape
 	features = features.reshape(features.shape[0], IMG_X, IMG_Y, 1)
 
@@ -130,7 +138,7 @@ def write_info(name, example, acc):
 if __name__ == '__main__':
 	# get command line arguements
 	data_path = '../matlab/emnist-bymerge' #argv[1]
-	classifier_name = 'test' #argv[2]
+	classifier_name = 'bymerge-classifier-5epochs' #argv[2]
 
 	# load dataset
 	features, labels = loadDataset(data_path)
@@ -155,6 +163,7 @@ if __name__ == '__main__':
 	y_train = np_utils.to_categorical(y_train, num_classes)
 	y_test = np_utils.to_categorical(y_test, num_classes)
 
+	#create classifier
 	model = create_model()
 
 	train_model(model, x_train, y_train, x_test, y_test)

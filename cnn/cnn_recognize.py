@@ -21,13 +21,23 @@ def loadClassifer(path):
 def preprocessImage(image):
     # Convert to grayscale and apply Gaussian filtering
     im_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    im_gray = cv2.GaussianBlur(im_gray, (5, 5), 0)
+
+
+    #im_gray = cv2.GaussianBlur(im_gray, (5, 5), 0)
     #cv2.imshow("gray scaled and blurred!", im_gray)
+    
+
+    # image_cropped = cropImage(rects, image)
+    image_cropped = cv2.resize(im_gray, (28, 28), interpolation=cv2.INTER_AREA)
 
     #Threshold the image
-    ret, im_th = cv2.threshold(im_gray, 170, 255, cv2.THRESH_BINARY_INV) #adjust this. 
 
-    #cv2.imshow("thresholded scaled", im_th)
+    ret, im_th = cv2.threshold(image_cropped, 170, 255, cv2.THRESH_BINARY) #adjust this. 
+
+
+    cv2.imshow("thresholded scaled", im_th)
+    cv2.waitKey()
+
 
     return im_th
 
@@ -72,6 +82,7 @@ def classify(roi, model):
     prediction = chr(mapping[np.argmax(probs)])
     max_index = char_to_index[ord(prediction)]
     max_probability = probs[max_index]
+    print(probs)
     
     return prediction, max_probability
 
@@ -88,9 +99,11 @@ def locateChar(image):
 
 if __name__ == '__main__':
     #get command line arguements
-    # classifier_path = '../classifiers/cnn-bymerge-E5.h5' #argv[1]
-    classifier_path = '../classifiers/test'
-    input_image_path = '../exampleCode.jpg' #argv[2]
+    classifier_path = '../classifiers/bymerge-classifier' #argv[1]
+    #classifier_path = '../classifiers/test'
+    input_image_path = '../tests/yo.png' #argv[2]
+
+
 
     # Read the input image
     image = loadImage(input_image_path)
@@ -104,11 +117,12 @@ if __name__ == '__main__':
     #put rectangle around char
     # rects = locateChar(processedImage)
 
-    # image_cropped = cropImage(rects, image)
-    image_cropped = cv2.resize(processedImage, (28, 28), interpolation=cv2.INTER_AREA)
+    
+
 
     #classify the char image
-    prediction, max_prob = classify(image_cropped, model)
+    prediction, max_prob = classify(processedImage, model)
+
 
     #print max prob
     print('Predicts {} with {:.3f}% confidence'.format(prediction, max_prob * 100))
