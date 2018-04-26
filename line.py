@@ -1,6 +1,8 @@
 import cv2
 import random
-#maybe use sliding window; issue with the other is lack of spaces.
+import numpy as np
+import matplotlib.pyplot as plt
+
 class LineImage:
     def __init__(self, image):
         self.image = image
@@ -25,31 +27,32 @@ class LineRecognizer:
     def recognizeLine(self, line):
         # First, need to break away unnecessary whitespace/break into single words.
         wordImages = self.splitLineByWhitespace(line.getImage())
-        text = ""
+        text = ''
         for word in wordImages:
-            cv2.imshow("word", word.getImage())
-            cv2.waitKey()
-            graph = self.CharGraph(word, self.classifier)
-            text = text + graph.getCharacters() + " "
+            text = text + self.PixelHistogram(word, self.classifier).getCharacters() + ' '
+
+            #graph = self.CharGraph(word, self.classifier)
+            #graph.build()
+            #text = text + graph.getCharacters() + " "
 
         return text
 
     def splitLineByWhitespace(self, lineImage):
         # 1. Threshold
         ret, im_th = cv2.threshold(lineImage, 160, 255, cv2.THRESH_BINARY) #adjust this.
-        cv2.imshow("thresholded", im_th)
+        #cv2.imshow("thresholded", im_th)
 
         # 2. Expand
         dilation = cv2.erode(im_th,(11, 11), iterations = 7)
-        cv2.imshow("dilated", dilation)
+        #cv2.imshow("dilated", dilation)
 
         # 3. Blur
         im_blurred = cv2.GaussianBlur(dilation, (9, 89), 0)
-        cv2.imshow("blurred", im_blurred)
+        #cv2.imshow("blurred", im_blurred)
 
         # 4. Threshold
         ret, im_th = cv2.threshold(im_blurred, 240, 255, cv2.THRESH_BINARY) #adjust this.
-        cv2.imshow("re-thresholded", im_th)
+        #cv2.imshow("re-thresholded", im_th)
 
         bordersize=10
         im_th_border=cv2.copyMakeBorder(im_th, top=bordersize, bottom=bordersize, left=bordersize, right=bordersize, borderType= cv2.BORDER_CONSTANT, value=255 )
@@ -59,9 +62,9 @@ class LineRecognizer:
 
         # Get rectangles contains each contour
         rects = [cv2.boundingRect(ctr) for ctr in ctrs]
-
+        rects = self.sortRectsHorizontally(rects)
         words = []
-
+        print rects
         # For each rectangular region, calculate HOG features and predict
         for rect in rects:
             if rect[0] is 0 and rect[1] is 0:
@@ -77,6 +80,160 @@ class LineRecognizer:
 
         return words
 
+    def sortRectsHorizontally(self, rects):
+        rects.sort(key=lambda x: x[0])
+        return rects
+
+
+    class PixelHistogram:
+        USE_GRAPH = False
+
+        def __init__(self, word, classifier):
+            self.word = word
+            self.wordImage = self.preprocessWord(word)
+            self.classifier = classifier
+            self.build()
+
+        def preprocessWord(self, word):
+            # Threshold
+            ret, thresh_image = cv2.threshold(word.getImage(), 180, 255, cv2.THRESH_BINARY) #adjust this.
+            cv2.imshow("thresholded word", thresh_image)
+
+            # Blur
+            im_blurred = cv2.GaussianBlur(thresh_image, (1, 3), 0)
+            #cv2.imshow("b1", im_blurred)
+
+            # threshold
+            ret, thresh_image_2 = cv2.threshold(im_blurred, 220, 255, cv2.THRESH_BINARY) #adjust this.
+            #cv2.imshow("t3", thresh_image_2)
+
+            cv2.waitKey()
+            return thresh_image
+
+        def build(self):
+            # build a pixel-density histogram
+            image_array = np.array(self.wordImage, 'int16')
+            histogram = np.zeros(len(image_array[0]))
+
+            for row in image_array:
+                for index, col in enumerate(row):
+                    if not col:
+                        histogram[index] = histogram[index] + 1
+
+            print histogram
+
+            # Trim edge whitespace
+            zero_splits, histogram = self.getZeroTrimSplits(histogram)
+            # Now get split other split candidates
+            stats_splits = self.getStatsSplits(histogram) or []
+            # Get dead space n_splits first
+            dead_splits = self.getPixelThresholdSplits(histogram)
+            # adjust
+            inner_splits = list(map(lambda x: x + (zero_splits[0]+1 or 0), stats_splits + dead_splits))
+
+            self.splits = zero_splits + inner_splits
+            self.splits.sort()
+            print(self.splits)
+
+            # Now split the histogram to get the character splits.
+            #plt.bar(range(histogram.size), height=histogram)
+            #plt.title("Histogram with 'auto' bins")
+            #plt.show()
+
+        def getZeroTrimSplits(self, histogram):
+            if not len(histogram): return []
+            # Trim from head
+            leadingZerosCount = 0
+            currIndex = 0
+            while not histogram[currIndex]:
+                leadingZerosCount = leadingZerosCount + 1
+                currIndex = currIndex + 1
+
+            trailingZerosCount = 0
+            currIndex = len(histogram) - 1
+            while not histogram[currIndex]:
+                trailingZerosCount = trailingZerosCount + 1
+                currIndex = currIndex - 1
+
+            headSplitIndex = leadingZerosCount
+            tailSplitIndex = len(histogram) - trailingZerosCount
+
+            return [headSplitIndex - 1, tailSplitIndex], histogram[headSplitIndex:tailSplitIndex]
+
+        def getPixelThresholdSplits(self, histogram):
+            return self.splitWordByPixelDensity(histogram, 0)
+
+        def getStatsSplits(self, histogram):
+            avg_pixel_density = np.mean(histogram)
+            mean_pixel_density = np.median(histogram)
+            std_pixel_density = np.std(histogram)
+
+            return []
+
+        def splitWordByPixelDensity(self, histogram, pixelValue):
+            # Finds all 0 pixel splits
+            candidates = []
+            foundCandidate = False
+            consecutiveCount = 0
+            startingIndex = None
+            for index, value in enumerate(histogram):
+                if value <= pixelValue:
+                    if foundCandidate:
+                        consecutiveCount = consecutiveCount + 1
+                    else:
+                        startingIndex = index
+                        foundCandidate = True
+                        consecutiveCount = 1
+                else:
+                    if foundCandidate:
+                        middleIndex = int((startingIndex + startingIndex + consecutiveCount) / 2)
+                        candidates.append(middleIndex)
+
+                    foundCandidate = False
+                    consecutiveCount = 0
+                    startingIndex = None
+            return candidates
+
+        def getCharacters(self):
+            # uses splits to classify all text, returns string of text
+            EDGE_BUFFER_PIXELS = 5
+
+            # Use CharGraph longest path to find correct characters
+            if self.USE_GRAPH:
+                graph = CharGraph(self.wordImage, self.classifier)
+                graph.buildFromEdgeList(self.splits) # pass candidate splits
+                return graph.getCharacters()
+
+            # Otherwise, just use our default splits
+            if len(self.splits):
+                characters = ''
+                # Predict each character in our splits (NAIVE), edge splits should reflect whitespace.
+                for index, value in enumerate(self.splits):
+                    if index is not (len(self.splits) - 1):
+                        # Get the image reflecting the splits
+                        currImage = self.wordImage[:, value:self.splits[index+1]]
+                        cv2.imshow("image without border", currImage)
+
+                        borderedImage = cv2.copyMakeBorder(
+                            currImage,
+                            top=0, bottom=0,
+                            left=EDGE_BUFFER_PIXELS,
+                            right=EDGE_BUFFER_PIXELS,
+                            borderType= cv2.BORDER_CONSTANT,
+                            value=255)
+
+                        prediction, probability = self.classifier.classify(borderedImage)
+                        characters = characters + prediction
+                        cv2.imshow("image with border", borderedImage)
+                        cv2.waitKey()
+
+                return characters
+            else:
+                # Likely a single character, touching both edges of the frame, just classify + move on.
+                prediction, probability = self.classifier.classify(self.wordImage)
+                return prediction
+
+
     class CharGraph:
         SAMPLING_WIDTH_IN_PX = 5
         adjacencyMap = {}
@@ -87,7 +244,6 @@ class LineRecognizer:
         def __init__(self, line, classifier):
             self.line = line
             self.classifier = classifier
-            self.build()
 
         # PUBLIC
         def getCharacters(self):
@@ -110,6 +266,24 @@ class LineRecognizer:
             while currentX < lineWidth:
                 self.createEdgesBetweenCoordinates(currentX, lineWidth, self.SAMPLING_WIDTH_IN_PX)
                 currentX = currentX + self.SAMPLING_WIDTH_IN_PX
+
+        def buildFromEdgeList(self, nodes):
+            for index, value in enumerate(nodes):
+                if index is not (len(nodes) - 1):
+                    # Get the image reflecting the splits
+                    currImage = self.line.getImage()[:, value:nodes[index+1]]
+                    borderedImage = cv2.copyMakeBorder(
+                        self.wordImage,
+                        top=0, bottom=0,
+                        left=EDGE_BUFFER_PIXELS,
+                        right=EDGE_BUFFER_PIXELS,
+                        borderType= cv2.BORDER_CONSTANT,
+                        value=255)
+
+                    prediction, probability = self.classifier.classify(borderedImage)
+                    characters = characters + prediction
+                    cv2.imshow("image with border", borderedImage)
+                    cv2.waitKey()
 
         def createEdgesBetweenCoordinates(self, firstCoordinate, finalCoordinate, samplingWidth):
             firstNodeLabel = self.coordinateToLabel(firstCoordinate)
