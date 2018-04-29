@@ -30,9 +30,13 @@ class Post_Processor(object):
             import sys
             from C.c_post_utils import C_Post_Processor
             self.processor = C_Post_Processor()
+        elif language == 'Python':
+            from Python.python_post_utils import Python_Post_Processor
+            self.processor = Python_Post_Processor()
         else:
             raise Exception("{} post processor not available".format(language))
-            quit()
+            quit(1)
+
 
     def process_line(self, line):
         return self.processor.post_process_line(line)
@@ -48,8 +52,8 @@ class Post_Processor(object):
 
 
 if __name__ == '__main__':
-    pp = Post_Processor()
-    line = pp.process_line("whiIe inl")
+    pp = Post_Processor('Python')
+    line = pp.process_line("fOr x In y:")
     print(line)
 
 

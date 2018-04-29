@@ -10,7 +10,7 @@ from collections import Counter
 # Load the dataset
 mat = sio.loadmat("cnn/emnist-bymerge")
 mapping = {kv[0]:kv[1:][0] for kv in mat['dataset'][0][0][2]}
-print mapping
+# print mapping
 
 # Extract the features and labels
 features = np.array(mat['dataset'][0][0][0][0][0][0], 'int16')

@@ -40,6 +40,7 @@ class LineRecognizer:
     def splitLineByWhitespace(self, lineImage):
         # 1. Threshold
         ret, im_th = cv2.threshold(lineImage, 160, 255, cv2.THRESH_BINARY) #adjust this.
+
         #cv2.imshow("thresholded", im_th)
 
         # 2. Expand
@@ -74,9 +75,9 @@ class LineRecognizer:
             #cv2.rectangle(im_th_border, (rect[0], rect[1]), (rect[0]+rect[2], rect[1] + rect[3]), (63, 191, 118), 2)
             #cv2.rectangle(orig_img_border, (rect[0], rect[1]), (rect[0]+rect[2], rect[1] + rect[3]), (63, 191, 118), 2)
 
-        #cv2.imshow("Resulting Image with Rectangular ROIs", im_th_border)
-        #cv2.imshow("YEP", orig_img_border)
-        #cv2.waitKey()
+        # cv2.imshow("Resulting Image with Rectangular ROIs", im_th_border)
+        # cv2.imshow("YEP", orig_img_border)
+        # cv2.waitKey()
 
         return words
 
@@ -252,7 +253,7 @@ class LineRecognizer:
                 return self.chars
             else:
                 path = self.getAverageLongestPath()
-                print (path)
+                # print (path)
                 return self.getCharactersFromPath(path, str(self.line.getWidth()))
 
         # PRIVATE
@@ -262,7 +263,7 @@ class LineRecognizer:
             currentX = 0
             lineWidth = self.line.getWidth()
 
-            # For each 10px increment, create edges between current position until end on line w/ 10px increment
+            # For each SAMPLING_WIDTH_IN_PX increment, create edges between current position until end on line w/ SAMPLING_WIDTH_IN_PX increment
             while currentX < lineWidth:
                 self.createEdgesBetweenCoordinates(currentX, lineWidth, self.SAMPLING_WIDTH_IN_PX)
                 currentX = currentX + self.SAMPLING_WIDTH_IN_PX
@@ -294,6 +295,10 @@ class LineRecognizer:
 
             while connectedCoordinate <= finalCoordinate:
                 # Add the edge between first node and connected node
+                if connectedCoordinate - firstCoordinate <= 5:
+                    connectedCoordinate = connectedCoordinate + samplingWidth
+                    continue
+
                 self.adjacencyMap[firstNodeLabel].append(self.createEdge(firstCoordinate, connectedCoordinate))
                 # Increment to the next node.
                 connectedCoordinate = connectedCoordinate + samplingWidth
@@ -305,6 +310,8 @@ class LineRecognizer:
         def createEdge(self, origin, dest):
             newEdgeImage = self.line.getImage()[:, origin:dest]
             prediction, newEdgeWeight = self.classifier.classify(newEdgeImage)
+            # cv2.imshow(str(prediction) + ' : ' + str(newEdgeWeight), newEdgeImage)
+            # cv2.waitKey()
             #newEdgeWeight = random.uniform(0, 1)
             #prediction = 'E'
             return self.Edge(self.coordinateToLabel(origin), self.coordinateToLabel(dest), newEdgeWeight, prediction)
@@ -358,7 +365,7 @@ class LineRecognizer:
                     self.getAverageLongestPathRecursive(destNode, pathDict, numVisited + 1)
 
         def getCharactersFromPath(self, path, finalNode):
-            print(finalNode)
+            # print(finalNode)
             # Basically you want to trace back from the final node to build a string
             currNode = path[finalNode]
             reversedString = self.getCharactersFromPathRecursive(path, currNode, '')
@@ -369,9 +376,9 @@ class LineRecognizer:
                 # End of list
                 return currString
 
-            print(currNode[0])
+            # print(currNode[0])
             # print edges
-            print "edge: " + currNode[1].getOrigin() + " " + currNode[1].getDestination() + " " + str(currNode[1].getWeight())
+            # print "edge: " + currNode[1].getOrigin() + " " + currNode[1].getDestination() + " " + str(currNode[1].getWeight())
             currChar = currNode[1].getPrediction()
             currString = currString + currChar
             nextNode = currNode[1].getOrigin()

@@ -4,6 +4,7 @@ sys.path.append('/usr/local/lib/python3.6/site-packages')
 
 from segmentLines import segmentLinesFromImage
 from line import LineRecognizer
+
 from Classifier import CNNClassifier
 from Classifier import SVMClassifier
 
