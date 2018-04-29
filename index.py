@@ -12,7 +12,7 @@ TEST_IMAGE = "python_1.png"
 
 lineImages = segmentLinesFromImage(TEST_IMAGE)
 program = ''
-recognizer = LineRecognizer(CNNClassifier('classifiers/bymerge-classifier-5epochs')) # pass in a classifier
+recognizer = LineRecognizer(SVMClassifier('emnist_cls.pkl')) # pass in a classifier
 
 for lineImage in lineImages:
     # Returns full predicted line of code
