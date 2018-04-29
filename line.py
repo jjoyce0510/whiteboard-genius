@@ -1,7 +1,7 @@
 import cv2
 import random
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 class LineImage:
     def __init__(self, image):
@@ -65,7 +65,7 @@ class LineRecognizer:
         rects = [cv2.boundingRect(ctr) for ctr in ctrs]
         rects = self.sortRectsHorizontally(rects)
         words = []
-        print rects
+        # print rects
         # For each rectangular region, calculate HOG features and predict
         for rect in rects:
             if rect[0] is 0 and rect[1] is 0:
@@ -98,7 +98,7 @@ class LineRecognizer:
         def preprocessWord(self, word):
             # Threshold
             ret, thresh_image = cv2.threshold(word.getImage(), 180, 255, cv2.THRESH_BINARY) #adjust this.
-            cv2.imshow("thresholded word", thresh_image)
+            # cv2.imshow("thresholded word", thresh_image)
 
             # Blur
             im_blurred = cv2.GaussianBlur(thresh_image, (1, 3), 0)
@@ -108,7 +108,7 @@ class LineRecognizer:
             ret, thresh_image_2 = cv2.threshold(im_blurred, 220, 255, cv2.THRESH_BINARY) #adjust this.
             #cv2.imshow("t3", thresh_image_2)
 
-            cv2.waitKey()
+            # cv2.waitKey()
             return thresh_image
 
         def build(self):
@@ -121,7 +121,7 @@ class LineRecognizer:
                     if not col:
                         histogram[index] = histogram[index] + 1
 
-            print histogram
+            # print histogram
 
             # Trim edge whitespace
             zero_splits, histogram = self.getZeroTrimSplits(histogram)
@@ -213,7 +213,7 @@ class LineRecognizer:
                     if index is not (len(self.splits) - 1):
                         # Get the image reflecting the splits
                         currImage = self.wordImage[:, value:self.splits[index+1]]
-                        cv2.imshow("image without border", currImage)
+                        # cv2.imshow("image without border", currImage)
 
                         borderedImage = cv2.copyMakeBorder(
                             currImage,
@@ -224,9 +224,11 @@ class LineRecognizer:
                             value=255)
 
                         prediction, probability = self.classifier.classify(borderedImage)
+                        if probability < 0.5:
+                            prediction = '_'
                         characters = characters + prediction
-                        cv2.imshow("image with border", borderedImage)
-                        cv2.waitKey()
+                        # cv2.imshow("image with border", borderedImage)
+                        # cv2.waitKey()
 
                 return characters
             else:
@@ -283,8 +285,8 @@ class LineRecognizer:
 
                     prediction, probability = self.classifier.classify(borderedImage)
                     characters = characters + prediction
-                    cv2.imshow("image with border", borderedImage)
-                    cv2.waitKey()
+                    # cv2.imshow("image with border", borderedImage)
+                    # cv2.waitKey()
 
         def createEdgesBetweenCoordinates(self, firstCoordinate, finalCoordinate, samplingWidth):
             firstNodeLabel = self.coordinateToLabel(firstCoordinate)

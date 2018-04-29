@@ -55,7 +55,8 @@ class CNNClassifier(object):
         im_gray = cv2.GaussianBlur(image, (5, 5), 0)
 
         #Threshold the image
-        ret, thresh_image = cv2.threshold(im_gray, 140, 255, cv2.THRESH_BINARY_INV) #adjust this.
+        # ret, thresh_image = cv2.threshold(im_gray, 140, 255, cv2.THRESH_BINARY_INV) #adjust this.
+        thresh_image = cv2.adaptiveThreshold(im_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 2)
 
         image_cropped = cv2.resize(thresh_image, (28, 28), interpolation=cv2.INTER_AREA)
          

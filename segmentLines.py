@@ -50,7 +50,7 @@ def processRects(rects, img):
         iqr = q75 - q25
         outlier_factor = 1.5 * iqr
         # Get rid of statistical outliers in terms of height (width doesn't tell us much)
-        heights_without_outliers = [h for h in heights if abs(avg_height - h) < outlier_factor]
+        heights_without_outliers = [h for h in heights if abs(avg_height - h) <= outlier_factor]
         new_avg_height = np.mean(np.array(heights_without_outliers))
 
     print ("Avg height w/o outliers: " + str(new_avg_height))
