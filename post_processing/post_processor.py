@@ -27,11 +27,10 @@ TODO:
 class Post_Processor(object):
     def __init__(self, language = 'C'):
         if language == 'C':
-            import sys
-            from C.c_post_utils import C_Post_Processor
+            from .C.c_post_utils import C_Post_Processor
             self.processor = C_Post_Processor()
         elif language == 'Python':
-            from Python.python_post_utils import Python_Post_Processor
+            from .Python.python_post_utils import Python_Post_Processor
             self.processor = Python_Post_Processor()
         else:
             raise Exception("{} post processor not available".format(language))

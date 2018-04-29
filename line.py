@@ -224,8 +224,6 @@ class LineRecognizer:
                             value=255)
 
                         prediction, probability = self.classifier.classify(borderedImage)
-                        if probability < 0.5:
-                            prediction = '_'
                         characters = characters + prediction
                         # cv2.imshow("image with border", borderedImage)
                         # cv2.waitKey()

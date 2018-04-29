@@ -10,17 +10,17 @@ from Classifier import CNNClassifier
 
 from executor.Executor import Executor
 
-from post_processing.Post_Processor import Post_Processor
+from post_processing.post_processor import Post_Processor
 
 DEFAULT_LANGUAGE = 'Python'
 TEST_IMAGE = 'python_1.png'
 
 lineImages = segmentLinesFromImage(TEST_IMAGE)
-recognizer = LineRecognizer(CNNClassifier('./classifiers/bymerge-classifier-10epochs')) # pass in a classifier
+recognizer = LineRecognizer(CNNClassifier('./classifiers/bymerge-classifier-5epochs')) # pass in a classifier
 processor = Post_Processor(DEFAULT_LANGUAGE)
 program = ''
 
-for lineImage in lineImages[::-1]:
+for lineImage in lineImages:
     # Returns full predicted line of code
     # Classifier must conform to generic classifier interface.
     lineOfCode = recognizer.recognizeLine(lineImage)
