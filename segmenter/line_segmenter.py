@@ -1,8 +1,11 @@
-# Import the modules
+
+"""
+module to handle image segmentation
+"""
 import cv2
 # from sklearn.externals import joblib
 # from skimage.feature import hog
-from line import LineImage
+from line_image import LineImage
 import numpy as np
 
 # TODO make as general as possible
@@ -176,3 +179,7 @@ def segmentLinesFromImage(imageName):
 
     #return lines to caller
     return lines
+
+class LineSegmenter(object):
+    def getLinesFromImage(self, imageName):
+        return segmentLinesFromImage(imageName)

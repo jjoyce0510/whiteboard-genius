@@ -1,4 +1,4 @@
-import Classifier
+import classifiers.Classifier
 from sklearn.model_selection import StratifiedKFold
 import numpy as np
 from keras.models import load_model
@@ -34,14 +34,14 @@ def loadDataset(path):
 def create_model():
 	model = Sequential()
 	model.add(Dense(512, input_shape=(784,)))
-	model.add(Activation('relu'))                         
+	model.add(Activation('relu'))
 	model.add(Dropout(0.2))
 	model.add(Dense(512))
 	model.add(Activation('relu'))
 	model.add(Dropout(0.2))
 	model.add(Dense(47))
 	model.add(Activation('softmax'))
-	            
+
 	model.compile(loss='categorical_crossentropy', optimizer='adam')
 	return model
 

@@ -24,7 +24,7 @@ TODO:
 
 """
 
-class Post_Processor(object):
+class PostProcessor(object):
     def __init__(self, language = 'C'):
         if language == 'C':
             import sys

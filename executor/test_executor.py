@@ -1,4 +1,4 @@
-from Executor import Executor
+from executor import Executor
 
 executor = Executor('Python')
 goodProgram = 'print "This is a good program"\nexit(0)'
