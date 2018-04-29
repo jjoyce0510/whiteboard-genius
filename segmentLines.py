@@ -29,7 +29,7 @@ def processRects(rects, img):
 
         # Filter by aspect ratio, don't include extraneous in mean
         if aspect_ratio > MINIMUM_ASPECT_RATIO:
-            print rect
+            # print rect
             widths.append(rect[2])
             heights.append(rect[3])
             filtered_rects.append(rect)
@@ -79,8 +79,8 @@ def processRects(rects, img):
             else:
                 print ("Segmentation Error: Unable to parse lines from rect.")
 
-        if (rect_height > new_avg_height - 1.5 * std_height) and (rect_height < new_avg_height + 3.5 * std_height):
-            output_rects.append(rect)
+        if (rect_height >= new_avg_height - 1.5 * std_height) and (rect_height <= new_avg_height + 3.5 * std_height):
+            output_rects.append(rect)   
 
     return output_rects
 
@@ -163,8 +163,9 @@ def segmentLinesFromImage(imageName):
         cv2.rectangle(im_border, (rect[0], adjustedY), (rect[0]+rect[2], adjustedY + adjustedHeight), (63, 191, 118), 2)
         #cv2.rectangle(im_original_border, (rect[0], adjustedY), (rect[0]+rect[2], adjustedY + adjustedHeight), (63, 191, 118), 2)
 
-    #cv2.imshow("Resulting Image with Rectangular ROIs", im_border)
-    #cv2.imshow("Output blobs with Rectangles", im_original_border)
+    # cv2.imshow("Resulting Image with Rectangular ROIs", im_border)
+    # cv2.imshow("Output blobs with Rectangles", im_original_border)
+    # cv2.waitKey()
 
     #return lines to caller
     return lines

@@ -4,14 +4,14 @@ sys.path.append('/usr/local/lib/python3.6/site-packages')
 
 from segmentLines import segmentLinesFromImage
 from line import LineRecognizer
-from Classifier import CNNClassifier
+from cnn.Classifier import CNNClassifier
 
 DEFAULT_LANGUAGE = 'C++'
-TEST_IMAGE = "exampleCode.jpg"
+TEST_IMAGE = "test.jpg"
 
 lineImages = segmentLinesFromImage(TEST_IMAGE)
 program = ''
-recognizer = LineRecognizer(CNNClassifier('./classifiers/bymerge-classifier')) # pass in a classifier
+recognizer = LineRecognizer(CNNClassifier('./classifiers/bymerge-classifier-15epochs')) # pass in a classifier
 
 for lineImage in lineImages:
     # Returns full predicted line of code

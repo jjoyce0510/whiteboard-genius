@@ -24,26 +24,39 @@ class CNNClassifier(object):
         return load_model(path)
 
     def classify(self, image):
-        image = self.loadImage(image)
+        # image = self.loadImage(image)
         image_array = self.pre_process_image(image)
+        cv2.imshow('pre processed', image_array[0])
+        cv2.waitKey()
 
         probs = self.model.predict(image_array, verbose = 0)[0]
         prediction = chr(mapping[np.argmax(probs)])
         max_index = char_to_index[ord(prediction)]
         max_probability = probs[max_index]
     
+        print(prediction, max_probability)
         return prediction, max_probability
 
+    def pad_image(self, image):
+        width = image.shape[0]
+        return image
+
     def pre_process_image(self, image):
+        # TODO: check for image size and act accordingly 
+        # we may not want to stretch/squeeze too much!
+        print(image.shape)
+        if image.shape[0] < 7:
+            image = pad_image(image)
+
         # We need to reshape to be 28x28
         image = cv2.resize(image, (28, 28))
-
+        # print(image)
         # Convert to grayscale and apply Gaussian filtering
-        im_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        im_gray = cv2.GaussianBlur(im_gray, (5, 5), 0)
+        # im_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        im_gray = cv2.GaussianBlur(image, (5, 5), 0)
 
         #Threshold the image
-        ret, thresh_image = cv2.threshold(im_gray, 170, 255, cv2.THRESH_BINARY_INV) #adjust this.
+        ret, thresh_image = cv2.threshold(im_gray, 140, 255, cv2.THRESH_BINARY_INV) #adjust this.
 
         image_cropped = cv2.resize(thresh_image, (28, 28), interpolation=cv2.INTER_AREA)
 
@@ -61,7 +74,7 @@ class CNNClassifier(object):
 
 
 if __name__ == '__main__':
-    cnn = CNNClassifier('../classifiers/test')
-    image = '../exampleCode.jpg'
+    cnn = CNNClassifier('../classifiers/bymerge-classifier-15epochs')
+    image = '../test.jpg'
     print(cnn.classify(image))
 
