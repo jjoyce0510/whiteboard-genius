@@ -1,5 +1,4 @@
 import sys
-from sys import argv
 sys.path.append('/usr/local/lib/python3.6/site-packages')
 
 import cv2
@@ -22,17 +21,15 @@ def preprocessImage(image):
     # Convert to grayscale and apply Gaussian filtering
     im_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-
     #im_gray = cv2.GaussianBlur(im_gray, (5, 5), 0)
     #cv2.imshow("gray scaled and blurred!", im_gray)
-    
 
     # image_cropped = cropImage(rects, image)
     image_cropped = cv2.resize(im_gray, (28, 28), interpolation=cv2.INTER_AREA)
 
     #Threshold the image
 
-    ret, im_th = cv2.threshold(image_cropped, 170, 255, cv2.THRESH_BINARY) #adjust this. 
+    ret, im_th = cv2.threshold(image_cropped, 170, 255, cv2.THRESH_BINARY_INV) #adjust this. 
 
 
     cv2.imshow("thresholded scaled", im_th)
@@ -78,6 +75,12 @@ def classify(roi, model):
     roi_array /= 255
 
     roi_array = roi_array.reshape(roi_array.shape[0], 28, 28, 1)
+
+
+    print(roi_array[0])
+    cv2.imshow('blah', roi_array[0])
+    cv2.waitKey()
+
     probs = model.predict(roi_array, verbose=0)[0]
     prediction = chr(mapping[np.argmax(probs)])
     max_index = char_to_index[ord(prediction)]
@@ -98,12 +101,8 @@ def locateChar(image):
     
 
 if __name__ == '__main__':
-    #get command line arguements
-    classifier_path = '../classifiers/bymerge-classifier' #argv[1]
-    #classifier_path = '../classifiers/test'
-    input_image_path = '../tests/yo.png' #argv[2]
-
-
+    classifier_path = '../classifiers/bymerge-classifier-15epochs' 
+    input_image_path = 't-part.png' 
 
     # Read the input image
     image = loadImage(input_image_path)
@@ -117,12 +116,8 @@ if __name__ == '__main__':
     #put rectangle around char
     # rects = locateChar(processedImage)
 
-    
-
-
     #classify the char image
     prediction, max_prob = classify(processedImage, model)
-
 
     #print max prob
     print('Predicts {} with {:.3f}% confidence'.format(prediction, max_prob * 100))

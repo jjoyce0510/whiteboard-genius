@@ -39,8 +39,8 @@ def loadDataset(path):
 	mapping = {kv[0]:kv[1:][0] for kv in mat['dataset'][0][0][2]}
 
 	# Extract the features and labels
-	features = np.array(mat['dataset'][0][0][0][0][0][0], 'int16')
-	labels = np.array(mat['dataset'][0][0][0][0][0][1], 'int')
+	features = np.array(mat['dataset'][0][0][0][0][0][0], 'float32')
+	labels = np.array(mat['dataset'][0][0][0][0][0][1], 'float32')
 
 	#threshold the training images
 	features_th = []
@@ -163,14 +163,22 @@ if __name__ == '__main__':
 	y_train = np_utils.to_categorical(y_train, num_classes)
 	y_test = np_utils.to_categorical(y_test, num_classes)
 
+	index = [i for i in range(len(y_train)) if y_train[i][46] == 1][0]
+	# print(x_train[index])
+	img = x_train[index].reshape(28, 28, 1)
+	print(img)
+	cv2.imshow(str(mapping[lables[index]]), img)
+	cv2.waitKey(0)
+	quit()
+
 	#create classifier
-	model = create_model()
+	# model = create_model()
 
-	train_model(model, x_train, y_train, x_test, y_test)
+	# train_model(model, x_train, y_train, x_test, y_test)
 
-	acc = model.evaluate(x_test, y_test, verbose=0)[0]
+	# acc = model.evaluate(x_test, y_test, verbose=0)[0]
 
-	write_info(classifier_name, x_train[0], acc)
+	# write_info(classifier_name, x_train[0], acc)
 
-	# Save the classifier
-	model.save("../classifiers/" + classifier_name)
+	# # Save the classifier
+	# model.save("../classifiers/" + classifier_name)

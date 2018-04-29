@@ -40,6 +40,7 @@ def processRects(rects, img):
     print(avg_width)
     print(avg_height)
 
+    heights_without_outliers = []
     new_avg_height = avg_height
     # Remove outliers using IQR if enough samples
     if len(filtered_rects) > MINIMUM_INSTANCES_FOR_IQR:
@@ -89,7 +90,7 @@ def segmentLinesFromImage(imageName):
     ### Image pre-processing/segmentation pipeline
     RECT_HEIGHT_ADJUSTMENT_FACTOR = 1.25
     MIN_IMAGE_RESIZE_WIDTH = 1500 # px
-    PIXEL_THRESHOLD_1 = 150
+    PIXEL_THRESHOLD_1 = 200
     PIXEL_THRESHOLD_2 = 240
     PIXEL_THRESHOLD_3 = 240
 
@@ -102,10 +103,11 @@ def segmentLinesFromImage(imageName):
 
     # 1. Grayscale
     im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-    #cv2.imshow("grayscale initial", im_gray)
+    #cv2.imshow("grayscale ", im_gray)
 
     # 2. Binarize
     ret, im_b = cv2.threshold(im_gray, PIXEL_THRESHOLD_1, 255, cv2.THRESH_BINARY) #adjust this.
+    #cv2.imshow("grayscale initial", im_b)
 
     # 3. Blur
     im_blurred = cv2.GaussianBlur(im_b, (89, 5), 0)
@@ -123,8 +125,12 @@ def segmentLinesFromImage(imageName):
     ret, im_reth = cv2.threshold(im_reblurred, PIXEL_THRESHOLD_3, 255, cv2.THRESH_BINARY) #adjust this.
     #cv2.imshow("rere-thresholded", im_reth)
 
+    # . Erosion
+    im_reth = cv2.erode(im_reth,(11, 11),iterations = 3)
+    #cv2.imshow("erosion-1", im_reth)
+
     # 7. Dilate
-    dilation = cv2.dilate(im_reth,(11, 11),iterations = 6)
+    dilation = cv2.dilate(im_reth,(11, 11),iterations = 8)
     #cv2.imshow("dilated", dilation)
 
     # 8. Erosion
@@ -161,11 +167,11 @@ def segmentLinesFromImage(imageName):
         lines.append(LineImage(im_gray_border[adjustedY:adjustedY+rect[3], rect[0]:rect[0]+rect[2]]))
 
         cv2.rectangle(im_border, (rect[0], adjustedY), (rect[0]+rect[2], adjustedY + adjustedHeight), (63, 191, 118), 2)
-        #cv2.rectangle(im_original_border, (rect[0], adjustedY), (rect[0]+rect[2], adjustedY + adjustedHeight), (63, 191, 118), 2)
+        cv2.rectangle(im_original_border, (rect[0], adjustedY), (rect[0]+rect[2], adjustedY + adjustedHeight), (63, 191, 118), 2)
 
-    # cv2.imshow("Resulting Image with Rectangular ROIs", im_border)
-    # cv2.imshow("Output blobs with Rectangles", im_original_border)
-    # cv2.waitKey()
+    #cv2.imshow("Resulting Image with Rectangular ROIs", im_border)
+    cv2.imshow("Output blobs with Rectangles", im_original_border)
+    cv2.waitKey()
 
     #return lines to caller
     return lines
