@@ -1,12 +1,11 @@
 import sys
 sys.path.append('/usr/local/lib/python3.6/site-packages')
 
-from line import LineRecognizer
-
 from classifiers.classifier import CNNClassifier
 from classifiers.classifier import SVMClassifier
 
 from segmenter.line_segmenter import LineSegmenter
+from recognizer.line_recognizer import LineRecognizer
 from postprocessor.postprocessor import PostProcessor
 from executor.executor import Executor
 
@@ -20,7 +19,6 @@ program = ''
 
 for image in lineImages:
     # Returns full predicted line of code
-    # Classifier must conform to generic classifier interface.
     lineOfCode = recognizer.recognizeLine(image)
     processedLineOfCode = processor.process_line(lineOfCode)
     program = program + processedLineOfCode + '\n'
