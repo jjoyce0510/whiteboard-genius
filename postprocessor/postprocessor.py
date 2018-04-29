@@ -24,7 +24,7 @@ TODO:
 
 """
 
-class Post_Processor(object):
+class PostProcessor(object):
     def __init__(self, language = 'C'):
         if language == 'C':
             from .C.c_post_utils import C_Post_Processor

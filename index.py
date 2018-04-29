@@ -1,29 +1,25 @@
 import sys
-
 sys.path.append('/usr/local/lib/python3.6/site-packages')
 
-from segmentLines import segmentLinesFromImage
-from line import LineRecognizer
+from classifiers.classifier import CNNClassifier
+from classifiers.classifier import SVMClassifier
 
-from Classifier import CNNClassifier
-# from Classifier import SVMClassifier
-
-from executor.Executor import Executor
-
-from post_processing.post_processor import Post_Processor
+from segmenter.line_segmenter import LineSegmenter
+from recognizer.line_recognizer import LineRecognizer
+from postprocessor.postprocessor import PostProcessor
+from executor.executor import Executor
 
 DEFAULT_LANGUAGE = 'Python'
-TEST_IMAGE = 'python_1.png'
+TEST_IMAGE_NAME = "./images/python_1.png"
 
-lineImages = segmentLinesFromImage(TEST_IMAGE)
-recognizer = LineRecognizer(CNNClassifier('./classifiers/bymerge-classifier-15epochs')) # pass in a classifier
-processor = Post_Processor(DEFAULT_LANGUAGE)
+lineImages = LineSegmenter().getLinesFromImage(TEST_IMAGE_NAME)
+recognizer = LineRecognizer(CNNClassifier('./classifiers/bymerge-classifier-5epochs')) # pass in a classifier
+processor = PostProcessor(DEFAULT_LANGUAGE)
 program = ''
 
-for lineImage in lineImages:
+for image in lineImages:
     # Returns full predicted line of code
-    # Classifier must conform to generic classifier interface.
-    lineOfCode = recognizer.recognizeLine(lineImage)
+    lineOfCode = recognizer.recognizeLine(image)
     processedLineOfCode = processor.process_line(lineOfCode)
     program = program + processedLineOfCode + '\n'
 
@@ -32,4 +28,4 @@ print(program)
 executor = Executor(DEFAULT_LANGUAGE)
 output, status = executor.run(program)
 print (output)
-print (status) # This is what the web service returns. 
+print (status) # This is what the web service returns.
