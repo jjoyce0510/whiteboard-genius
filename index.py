@@ -16,7 +16,7 @@ DEFAULT_LANGUAGE = 'Python'
 TEST_IMAGE = 'python_1.png'
 
 lineImages = segmentLinesFromImage(TEST_IMAGE)
-recognizer = LineRecognizer(CNNClassifier('./classifiers/bymerge-classifier-5epochs')) # pass in a classifier
+recognizer = LineRecognizer(CNNClassifier('./classifiers/bymerge-classifier-15epochs')) # pass in a classifier
 processor = Post_Processor(DEFAULT_LANGUAGE)
 program = ''
 
@@ -27,6 +27,7 @@ for lineImage in lineImages:
     processedLineOfCode = processor.process_line(lineOfCode)
     program = program + processedLineOfCode + '\n'
 
+print(program)
 # Now run the program
 executor = Executor(DEFAULT_LANGUAGE)
 output, status = executor.run(program)
