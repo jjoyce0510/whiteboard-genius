@@ -81,7 +81,7 @@ def processRects(rects, img):
                 print ("Segmentation Error: Unable to parse lines from rect.")
 
         if (rect_height >= new_avg_height - 1.5 * std_height) and (rect_height <= new_avg_height + 3.5 * std_height):
-            output_rects.append(rect)   
+            output_rects.append(rect)
 
     return output_rects
 
@@ -150,6 +150,7 @@ def segmentLinesFromImage(imageName):
     # Get rectangles contains each contour
     rects = [cv2.boundingRect(ctr) for ctr in ctrs]
     rects = processRects(rects, im_border)
+    rects.sort(key=lambda x: x[1])
 
     lines = []
 

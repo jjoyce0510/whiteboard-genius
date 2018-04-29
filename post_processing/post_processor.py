@@ -1,12 +1,12 @@
 
-""" 
+"""
 
 1. score each token based on what we think it is, adjust for each token
 2. read all tokens and categorize them, adjust for entire line
 
 local : fix single token based on other parts of same token
     - predict what each token is based on characters. BEGIN/END are important
-    - 
+    -
 global: fix single token based on surrounding tokens
 
 DONE:
@@ -39,7 +39,7 @@ class Post_Processor(object):
 
 
     def process_line(self, line):
-        return self.processor.post_process_line(line)
+        return self.processor.post_process_line(line)[0]
 
     def process_lines(self, lines):
         if type(lines) is list:
@@ -55,6 +55,3 @@ if __name__ == '__main__':
     pp = Post_Processor('Python')
     line = pp.process_line("fOr x In y:")
     print(line)
-
-
-
