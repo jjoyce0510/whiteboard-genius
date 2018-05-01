@@ -75,8 +75,8 @@ class Python_Post_Processor(object):
         return None
 
     def check_str(self, token):
-        if token[0] == '"' or token[-1] == '"':
-            return True
+        # if token[0] == '"' or token[-1] == '"':
+        #     return True
         return None
 
     def check_line_term(self, token):

@@ -15,16 +15,22 @@ import numpy as np
 from keras.optimizers import Adam as Adam
 from keras.layers.advanced_activations import LeakyReLU
 
+import os
 import cv2
 
 import h5py
 
-
-mapping = {0: 48, 1: 49, 2: 50, 3: 51, 4: 52, 5: 53, 6: 54, 7: 55, 8: 56, 9: 57, 10: 65, 11: 66, 12: 67, 13: 68, 14: 69, 15: 70, 16: 71, 17: 72, 18: 73, 19: 74, 20: 75, 21: 76, 22: 77, 23: 78, 24: 79, 25: 80, 26: 81, 27: 82, 28: 83, 29: 84, 30: 85, 31: 86, 32: 87, 33: 88, 34: 89, 35: 90, 36: 97, 37: 98, 38: 100, 39: 101, 40: 102, 41: 103, 42: 104, 43: 110, 44: 113, 45: 114, 46: 116}
+# need to extern this shit
+mapping = {0: 48, 1: 49, 2: 50, 3: 51, 4: 52, 5: 53, 6: 54, 7: 55, 8: 56, 9: 57, 10: 65, 
+			11: 66, 12: 67, 13: 68, 14: 69, 15: 70, 16: 71, 17: 72, 18: 73, 19: 74, 20: 75, 
+			21: 76, 22: 77, 23: 78, 24: 79, 25: 80, 26: 81, 27: 82, 28: 83, 29: 84, 30: 85, 
+			31: 86, 32: 87, 33: 88, 34: 89, 35: 90, 36: 97, 37: 98, 38: 100, 39: 101, 
+			40: 102, 41: 103, 42: 104, 43: 110, 44: 113, 45: 114, 46: 116
+		}
 
 #need final 1 for channel dim
 INPUT_SHAPE = (28, 28, 1)
-num_classes = 47
+num_classes = 126 #58 # emnist + custom + math_symbols
 EPOCHS = 5
 batch_size = 128
 IMG_X = 28
@@ -38,7 +44,7 @@ def eval():
 def loadDataset(path):
 	# Load the dataset
 	mat = sio.loadmat(path)
-	mapping = {kv[0]:kv[1:][0] for kv in mat['dataset'][0][0][2]}
+	# mapping = {kv[0]:kv[1:][0] for kv in mat['dataset'][0][0][2]}
 
 	# Extract the features and labels
 	features = np.array(mat['dataset'][0][0][0][0][0][0], 'float32')
@@ -48,6 +54,7 @@ def loadDataset(path):
 	features_th = []
 	for feature in features:
 		ret, feature_th = cv2.threshold(feature, 170, 255, cv2.THRESH_BINARY) #adjust this. 
+		# feature_th = cv2.adaptiveThreshold(feature, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
 		features_th.append(feature_th)
 
 	features = np.array(features_th)
@@ -56,6 +63,102 @@ def loadDataset(path):
 	features = features.reshape(features.shape[0], IMG_X, IMG_Y, 1)
 
 	return features, labels
+
+def loadCustomData(path):
+	labels = [name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name))]
+	img_files = []
+	for l in labels:
+		img_files = img_files + [(f, l) for f in os.listdir(os.path.join(path, l)) if f[:2] == 't_']
+
+	x = []
+	y = []
+
+	label_dict = {
+		'and' : ord('&'),
+		'colon' : ord(':'),
+		'dash' : ord('-'),
+		'doub_quote' : ord('"'),
+		'percent' : ord('%'),
+		'period' : ord('.'),
+		'semi' : ord(';'),
+		'single_quote' : ord("'"),
+		'times' : ord('*'),
+		'xor' : ord('^')
+	}
+
+	# update the mapping dictionary
+	mapping.update(label_dict)
+
+	for img, label in img_files:
+		p = os.path.join(path, label)
+		p = os.path.join(p, img)
+		image = cv2.imread(p)
+		image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+		image_thresh = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
+		image_crop = cv2.resize(image_thresh, (28, 28), interpolation=cv2.INTER_AREA)
+		image = np.array(image_crop, 'float32')
+		image = image.reshape(28, 28, 1)
+
+		x.append(image)
+		y.append(mapping[label]) # label needs to line up with the mapping dict
+
+	x = np.array(x)
+	y = np.array(y)
+
+	y = y.reshape(y.shape[0], 1)
+
+	return x, y
+
+def loadMathData(path):
+	labels = [name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name))]
+	img_files = []
+	for l in labels:
+		img_files = img_files + [(f, l) for f in os.listdir(os.path.join(path, l))]
+
+	label_dict = {
+		'-' : ord('-'),
+		',' : ord(','),
+		'!' : ord('!'),
+		'(' : ord('('),
+		')' : ord(')'),
+		']' : ord(']'),
+		'[' : ord('['),
+		'{' : ord('{'),
+		'}' : ord('}'),
+		'+' : ord('+'),
+		'=' : ord('=')
+	}
+
+	# update the mapping dictionary
+	mapping.update(label_dict)
+
+	x = []
+	y = []
+
+	for img, label in img_files:
+		p = os.path.join(path, label)
+		p = os.path.join(p, img)
+		image = cv2.imread(p)
+		# cv2.imshow('hi', image)
+		# cv2.waitKey()
+
+		image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+		image_thresh = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
+		image_crop = cv2.resize(image_thresh, (28, 28), interpolation=cv2.INTER_AREA)
+		image = np.array(image_crop, 'float32')
+		image = image.reshape(28, 28, 1)
+
+		x.append(image)
+		y.append(mapping[label]) # label needs to line up with the mapping dict
+
+	x = np.array(x)
+	y = np.array(y)
+
+	y = y.reshape(y.shape[0], 1)
+
+	return x, y
 
 def flip_rotate(features):
 	temp_array = []
@@ -132,7 +235,7 @@ def create_model():
         LeakyReLU(),
         BatchNormalization(),
         Dropout(0.2),
-        Dense(47, activation='softmax')
+        Dense(num_classes, activation='softmax')
     ])
 
 	model.summary()
@@ -142,22 +245,17 @@ def create_model():
 	return model
 
 def train_model(model, x_train, y_train, x_test, y_test):
-	model.fit(x_train, y_train, batch_size=batch_size, epochs=EPOCHS, verbose=1, validation_data=(x_test, y_test))
-
-def write_info(name, example, acc):
-	f = open(name + '-summary.txt', 'w+')
-	f.write(name + ' Summary\n')
-	f.write('Training Accuracy: ' + str(acc))
-	f.write('Input Ex.\n')
-	f.write(str(example))
+	model.fit(x_train, y_train, batch_size=batch_size, epochs=2, verbose=1, validation_data=(x_test, y_test))
 
 if __name__ == '__main__':
-	# get command line arguements
-	data_path = '../matlab/emnist-bymerge' #argv[1]
-	classifier_name = 'bymerge-classifier-5epochs' #argv[2]
 
+	classifier_name = 'bymerge-allsymbols-3epochs'
+
+	x_sym, y_sym = loadCustomData('../symbol_training/')
+
+	x_math, y_math = loadMathData('../math_symbols/extracted_images/')
 	# load dataset
-	features, labels = loadDataset(data_path)
+	features, labels = loadDataset('../matlab/emnist-bymerge')
 
 	# flip + rotate the images
 	features = flip_rotate(features)
@@ -165,28 +263,37 @@ if __name__ == '__main__':
 	# extract hog features
 	# features = extractHogFeatures(features)
 
+	features = np.concatenate([features, x_sym])
+	features = np.concatenate([features, x_math])
+
+	print(labels.shape, y_sym.shape)
+	labels = np.concatenate([labels, y_sym])
+	print(labels.shape, y_math.shape)
+	labels = np.concatenate([labels, y_math])
+	print(labels.shape)
+
 	# split into
 	(x_train, y_train), (x_test, y_test) = split_data(features,labels)
 
-	label0 = y_train[20]
-	feature0 = x_train[20]
+	# label0 = y_train[20]
+	# feature0 = x_train[20]
 
 	x_train = x_train.astype('float32')
 	x_test = x_test.astype('float32')
+	y_train = y_train.astype('uint8')
+	y_test = y_test.astype('uint8')
 	x_train /= 255
 	x_test /= 255
 
-	y_train = np_utils.to_categorical(y_train, num_classes)
+	y_train = y_train.T[0]
+	# print(int(y_train.max()))
+	# print(len(mapping))
+	# print(mapping)
+	# print(y_train)
+
+	y_train = np_utils.to_categorical(y_train, num_classes) # we get the wrong shape out of here!!!
+
 	y_test = np_utils.to_categorical(y_test, num_classes)
-
-	index = [i for i in range(len(y_train)) if y_train[i][46] == 1][0]
-	# print(x_train[index])
-	img = x_train[index].reshape(28, 28, 1)
-	# print(img)
-	# cv2.imshow(str(mapping[lables[index]]), img)
-	# cv2.waitKey(0)
-	# quit()
-
 	#create classifier
 	model = create_model()
 

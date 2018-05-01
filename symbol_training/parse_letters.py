@@ -6,7 +6,7 @@ from os.path import isfile, join
 
 IMAGE_NAME = 'scanned_test.png'
 
-CURR_FOLDER = 'symbol_training/doub_quote'
+CURR_FOLDER = '../symbol_training/doub_quote'
 files = [f for f in listdir(CURR_FOLDER) if isfile(join(CURR_FOLDER, f))]
 images = [f for f in files if '.png' in f and 'j' in f]
 
@@ -14,7 +14,7 @@ currNum = 328
 # Returns array of type Line
 def segmentLinesFromImage(imageName):
 
-    print imageName
+    # print imageName
     global currNum
 
     ### Image pre-processing/segmentation pipeline
@@ -84,8 +84,6 @@ def segmentLinesFromImage(imageName):
         lines.append(im_original_border[adjustedY:adjustedY+adjustedHeight, rect[0]:rect[0]+rect[2]])
 
         cv2.rectangle(im_border, (rect[0], adjustedY), (rect[0]+rect[2], adjustedY + adjustedHeight), (63, 191, 118), 2)
-        #cv2.rectangle(im_original_border, (rect[0], adjustedY), (rect[0]+rect[2], adjustedY + adjustedHeight), (63, 191, 118), 2)
-
 
     for image in lines:
         cv2.imshow("resulting.", image)
